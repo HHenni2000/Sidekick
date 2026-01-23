@@ -1,0 +1,45 @@
+{
+  "expo": {
+    "name": "Sidekick",
+    "slug": "Sidekick",
+    "version": "2.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/images/nami.png",
+    "scheme": "sidekick",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "platforms": [
+      "ios"
+    ],
+    "splash": {
+      "image": "./assets/images/nami.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#f1f7f6"
+    },
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.kotoro.sidekick",
+      "buildNumber": "2",
+      "infoPlist": {
+        "UIBackgroundModes": [
+          "remote-notification"
+        ],
+        "ITSAppUsesNonExemptEncryption": false,
+        "NSUserNotificationUsageDescription": "Sidekick erinnert an Mahlzeiten, Snacks und Rebound-Phasen."
+      }
+    },
+    "plugins": [
+      "expo-router",
+      "expo-notifications"
+    ],
+    "experiments": {
+      "typedRoutes": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "71ca38eb-cff2-4072-8027-844fc701b897"
+      }
+    }
+  }
+}

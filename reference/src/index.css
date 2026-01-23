@@ -1,0 +1,113 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
+All colors MUST be HSL.
+*/
+
+@layer base {
+  :root {
+    /* Calming wellness palette for ADHD - soft, non-overstimulating */
+    --background: 180 20% 94%; /* Soft sage-tinted cream */
+    --foreground: 200 25% 20%; /* Deep charcoal-teal */
+
+    --card: 0 0% 100%;
+    --card-foreground: 200 25% 20%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 200 25% 20%;
+
+    /* Primary: Calming teal-sage */
+    --primary: 168 45% 35%;
+    --primary-foreground: 0 0% 100%;
+
+    /* Secondary: Soft lavender-gray */
+    --secondary: 240 15% 95%;
+    --secondary-foreground: 200 25% 20%;
+
+    /* Muted: Gentle gray-sage */
+    --muted: 180 10% 92%;
+    --muted-foreground: 200 10% 50%;
+
+    /* Accent: Warm coral-peach for CTAs */
+    --accent: 15 70% 65%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 65% 55%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 180 15% 88%;
+    --input: 180 15% 88%;
+    --ring: 168 45% 35%;
+
+    --radius: 1rem;
+
+    /* Sidekick custom tokens */
+    --sage: 150 25% 75%;
+    --sage-dark: 150 30% 35%;
+    --peach: 25 85% 85%;
+    --peach-dark: 15 70% 55%;
+    --lavender: 270 30% 90%;
+    --lavender-dark: 270 25% 55%;
+    --cream: 40 30% 96%;
+    --teal-light: 175 35% 90%;
+    --teal-dark: 175 45% 30%;
+    
+    /* Effect curve colors */
+    --curve-active: 168 55% 45%;
+    --curve-peak: 15 70% 60%;
+    --curve-fade: 180 20% 75%;
+
+    /* Shadows */
+    --shadow-soft: 0 4px 20px -4px hsl(200 25% 20% / 0.08);
+    --shadow-card: 0 2px 12px -2px hsl(200 25% 20% / 0.06);
+    --shadow-button: 0 4px 14px -3px hsl(168 45% 35% / 0.3);
+  }
+}
+
+@layer components {
+  .card-wellness {
+    @apply bg-card rounded-2xl shadow-[var(--shadow-card)] border-0;
+  }
+  
+  .btn-log {
+    @apply bg-gradient-to-br from-[hsl(var(--primary))] to-[hsl(var(--teal-dark))] 
+           text-primary-foreground rounded-2xl font-semibold
+           shadow-[var(--shadow-button)] transition-all duration-200
+           hover:scale-[1.02] active:scale-[0.98];
+  }
+  
+  .btn-checkin {
+    @apply bg-[hsl(var(--sage))] text-[hsl(var(--sage-dark))] 
+           rounded-xl font-medium transition-all duration-200
+           hover:bg-[hsl(var(--sage-dark))] hover:text-white;
+  }
+  
+  .effect-curve-gradient {
+    background: linear-gradient(
+      180deg,
+      hsl(var(--curve-active) / 0.3) 0%,
+      hsl(var(--curve-peak) / 0.2) 50%,
+      hsl(var(--curve-fade) / 0.1) 100%
+    );
+  }
+  
+  .mobile-safe-bottom {
+    padding-bottom: max(1rem, env(safe-area-inset-bottom));
+  }
+  
+  .glass-card {
+    @apply bg-white/80 backdrop-blur-md rounded-2xl;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+  }
+}
