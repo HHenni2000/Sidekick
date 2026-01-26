@@ -79,7 +79,7 @@ export default function SettingsScreen() {
           </View>
           <View style={styles.infoRow}>
             <Text style={styles.infoLabel}>Commit</Text>
-            <Text style={styles.infoValue}>7fce41b</Text>
+            <Text style={styles.infoValue}>78737db</Text>
           </View>
         </Card>
       </View>
