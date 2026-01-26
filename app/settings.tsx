@@ -1,8 +1,10 @@
+import { useEffect, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import Slider from '@react-native-community/slider';
 import { Feather } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import Constants from 'expo-constants';
+import * as Updates from 'expo-updates';
 import { Screen } from '@/components/Screen';
 import { Card } from '@/components/Card';
 import { Colors } from '@/constants/Colors';
@@ -15,6 +17,17 @@ export default function SettingsScreen() {
   const setMetabolismOffset = useAppStore((state) => state.setMetabolismOffset);
   const notificationSettings = useAppStore((state) => state.notificationSettings);
   const setNotificationSetting = useAppStore((state) => state.setNotificationSetting);
+  
+  const [updateId, setUpdateId] = useState<string>('dev');
+
+  useEffect(() => {
+    // Get the current update ID (only available in production builds with OTA updates)
+    if (!__DEV__ && Updates.updateId) {
+      setUpdateId(Updates.updateId.substring(0, 8));
+    } else if (__DEV__) {
+      setUpdateId('dev-mode');
+    }
+  }, []);
 
   return (
     <Screen>
@@ -78,8 +91,12 @@ export default function SettingsScreen() {
             <Text style={styles.infoValue}>{Constants.expoConfig?.ios?.buildNumber || '2'}</Text>
           </View>
           <View style={styles.infoRow}>
-            <Text style={styles.infoLabel}>Commit</Text>
-            <Text style={styles.infoValue}>78737db</Text>
+            <Text style={styles.infoLabel}>Update ID</Text>
+            <Text style={styles.infoValue}>{updateId}</Text>
+          </View>
+          <View style={styles.infoRow}>
+            <Text style={styles.infoLabel}>Channel</Text>
+            <Text style={styles.infoValue}>{Updates.channel || 'none'}</Text>
           </View>
         </Card>
       </View>
