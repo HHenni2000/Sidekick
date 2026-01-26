@@ -50,7 +50,7 @@ export const scheduleIntakeNotifications = async (
 
   if (settings.snackReminder) {
     const id = await scheduleAt(
-      new Date(baseTime + 3.5 * 60 * 60 * 1000),
+      new Date(baseTime + 2 * 60 * 60 * 1000),
       'Snack Erinnerung',
       'Zeit fuer einen kleinen Snack in der Uebergangsphase.'
     );

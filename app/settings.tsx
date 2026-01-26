@@ -2,6 +2,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import Slider from '@react-native-community/slider';
 import { Feather } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import Constants from 'expo-constants';
 import { Screen } from '@/components/Screen';
 import { Card } from '@/components/Card';
 import { Colors } from '@/constants/Colors';
@@ -38,7 +39,7 @@ export default function SettingsScreen() {
           />
           <ToggleRow
             label="Snack Alarm"
-            description="3,5 Stunden nach Einnahme"
+            description="2 Stunden nach Einnahme"
             value={notificationSettings.snackReminder}
             onChange={(value) => void setNotificationSetting('snackReminder', value)}
           />
@@ -65,6 +66,21 @@ export default function SettingsScreen() {
           <Text style={styles.helper}>
             Nutze den Offset nur, wenn die Wirkung deutlich frueher oder spaeter einsetzt.
           </Text>
+        </Card>
+        <Card>
+          <Text style={styles.cardTitle}>App-Info</Text>
+          <View style={styles.infoRow}>
+            <Text style={styles.infoLabel}>Version</Text>
+            <Text style={styles.infoValue}>{Constants.expoConfig?.version || '2.0.0'}</Text>
+          </View>
+          <View style={styles.infoRow}>
+            <Text style={styles.infoLabel}>Build</Text>
+            <Text style={styles.infoValue}>{Constants.expoConfig?.ios?.buildNumber || '2'}</Text>
+          </View>
+          <View style={styles.infoRow}>
+            <Text style={styles.infoLabel}>Commit</Text>
+            <Text style={styles.infoValue}>ed6a9e2</Text>
+          </View>
         </Card>
       </View>
     </Screen>
@@ -119,5 +135,23 @@ const styles = StyleSheet.create({
     marginTop: 12,
     fontSize: 12,
     color: Colors.mutedForeground,
+  },
+  infoRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border,
+  },
+  infoLabel: {
+    fontSize: 13,
+    color: Colors.foreground,
+    fontWeight: '500',
+  },
+  infoValue: {
+    fontSize: 13,
+    color: Colors.mutedForeground,
+    fontFamily: 'monospace',
   },
 });
