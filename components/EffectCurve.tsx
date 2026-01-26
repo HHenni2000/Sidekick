@@ -5,7 +5,7 @@ import { buildEffectPoints, EFFECT_WINDOW, getCurrentHourMarker, getEffectAtHour
 import { MedicationIntake } from '@/types/app';
 import { scaleLinear } from 'd3-scale';
 import { area, curveCatmullRom, line } from 'd3-shape';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { LayoutChangeEvent, StyleSheet, Text, View } from 'react-native';
 import Svg, { Circle, Defs, Line, LinearGradient, Path, Stop } from 'react-native-svg';
 
@@ -16,6 +16,7 @@ interface EffectCurveProps {
 
 export const EffectCurve = ({ intake, offsetMinutes }: EffectCurveProps) => {
   const [width, setWidth] = useState(0);
+  const [now, setNow] = useState(Date.now());
   const height = 140;
   const chartPaddingBottom = 15;
   const dose = intake?.doseMg ?? 10;
@@ -23,11 +24,32 @@ export const EffectCurve = ({ intake, offsetMinutes }: EffectCurveProps) => {
   const hasIntake = Boolean(intake);
   const axisLabelWidth = 52;
 
+  // Update every 30 seconds to keep the marker moving
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setNow(Date.now());
+    }, 30000); // 30 seconds
+
+    return () => clearInterval(interval);
+  }, []);
+
   const points = useMemo(() => buildEffectPoints(dose, offsetMinutes), [dose, offsetMinutes]);
-  const { currentHour, isActive } = useMemo(
-    () => getCurrentHourMarker(takenAt, offsetMinutes),
-    [takenAt, offsetMinutes]
-  );
+  
+  // Calculate hours since intake (raw, without offset)
+  const hoursSinceIntake = useMemo(() => {
+    if (!takenAt) return 0;
+    const hoursSince = (now - takenAt.getTime()) / (1000 * 60 * 60);
+    return Math.max(0, hoursSince);
+  }, [takenAt, now]);
+  
+  // Calculate current hour with offset for display (clamped to window)
+  const { currentHour, isActive } = useMemo(() => {
+    if (!takenAt) return { currentHour: 0, isActive: false };
+    const adjusted = hoursSinceIntake - offsetMinutes / 60;
+    const currentHour = Math.max(EFFECT_WINDOW.startHours, Math.min(EFFECT_WINDOW.endHours, adjusted));
+    const isActive = adjusted >= EFFECT_WINDOW.startHours && adjusted <= EFFECT_WINDOW.endHours;
+    return { currentHour, isActive };
+  }, [hoursSinceIntake, offsetMinutes, takenAt]);
   const axisTicks = useMemo(() => {
     const ticks: number[] = [];
     const stepHours = 2;
@@ -94,11 +116,15 @@ export const EffectCurve = ({ intake, offsetMinutes }: EffectCurveProps) => {
     return { areaPath: areaPath ?? '', linePath: linePath ?? '' };
   }, [points, width, xScale, yScale]);
 
-  const currentX = xScale ? xScale(currentHour) : 0;
+  // Use hoursSinceIntake for X position (the axis shows hours since intake)
+  // Clamp to the visible window
+  const displayHour = Math.max(EFFECT_WINDOW.startHours, Math.min(EFFECT_WINDOW.endHours, hoursSinceIntake));
+  const currentX = xScale ? xScale(displayHour) : 0;
 
+  // Calculate effect at the exact hour (getEffectAtHour applies offset internally)
   const currentEffect = useMemo(() => {
-    return getEffectAtHour(currentHour, offsetMinutes, dose);
-  }, [currentHour, offsetMinutes, dose]);
+    return getEffectAtHour(hoursSinceIntake, offsetMinutes, dose);
+  }, [hoursSinceIntake, offsetMinutes, dose]);
 
   const currentY = yScale ? yScale(currentEffect) : 0;
 
