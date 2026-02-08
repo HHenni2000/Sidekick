@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useRef, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { useFocusEffect, useScrollToTop } from '@react-navigation/native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
@@ -12,7 +12,8 @@ import { SecondaryButton } from '@/components/SecondaryButton';
 import { Colors } from '@/constants/Colors';
 import { useAppStore } from '@/store/useAppStore';
 import { CheckinCategory, MealType } from '@/types/app';
-import { endOfDay, startOfDay } from '@/lib/date';
+import { endOfDay, formatTime, startOfDay } from '@/lib/date';
+import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
 
 const mealTypes: { id: MealType; label: string }[] = [
   { id: 'fruehstueck', label: 'Fruehstueck' },
@@ -31,6 +32,9 @@ export default function CheckinScreen() {
   const [mealSheetVisible, setMealSheetVisible] = useState(false);
   const [mealType, setMealType] = useState<MealType>('fruehstueck');
   const [mealDescription, setMealDescription] = useState('');
+  const [mealTimestamp, setMealTimestamp] = useState<Date>(new Date());
+  const [mealTimePickerVisible, setMealTimePickerVisible] = useState(false);
+  const [mealPickerValue, setMealPickerValue] = useState<Date>(new Date());
 
   const [checkinValues, setCheckinValues] = useState({
     stimmung: 0,
@@ -76,15 +80,33 @@ export default function CheckinScreen() {
   );
 
   const openMealSheet = (type: MealType) => {
+    const now = new Date();
     setMealType(type);
     setMealDescription('');
+    setMealTimestamp(now);
+    setMealPickerValue(now);
+    setMealTimePickerVisible(false);
     setMealSheetVisible(true);
   };
 
-  const handleSaveMeal = () => {
-    logMeal({ type: mealType, description: mealDescription });
-    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+  const closeMealSheet = () => {
     setMealSheetVisible(false);
+    setMealTimePickerVisible(false);
+  };
+
+  const handleSaveMeal = () => {
+    logMeal({ type: mealType, description: mealDescription, timestamp: mealTimestamp.getTime() });
+    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    closeMealSheet();
+  };
+
+  const handleMealTimeChange = (_event: DateTimePickerEvent, selected?: Date) => {
+    if (!selected) {
+      return;
+    }
+    const next = new Date(mealPickerValue);
+    next.setHours(selected.getHours(), selected.getMinutes(), 0, 0);
+    setMealPickerValue(next);
   };
 
   const handleCheckinValue = (key: CheckinCategory, value: number) => {
@@ -212,7 +234,7 @@ export default function CheckinScreen() {
       <Sheet
         visible={mealSheetVisible}
         title="Mahlzeit erfassen"
-        onClose={() => setMealSheetVisible(false)}
+        onClose={closeMealSheet}
       >
         <Text style={styles.sheetLabel}>Beschreibung</Text>
         <TextInput
@@ -223,8 +245,49 @@ export default function CheckinScreen() {
           style={styles.sheetInput}
           maxLength={120}
         />
+        <Text style={styles.sheetLabel}>Uhrzeit</Text>
+        <Pressable
+          style={styles.timeButton}
+          onPress={() => {
+            setMealPickerValue(new Date(mealTimestamp));
+            setMealTimePickerVisible(true);
+          }}
+        >
+          <Text style={styles.timeButtonLabel}>Zeitpunkt</Text>
+          <Text style={styles.timeButtonValue}>{formatTime(mealTimestamp)}</Text>
+        </Pressable>
+        {mealTimePickerVisible ? (
+          <View style={styles.inlinePicker}>
+            <DateTimePicker
+              value={mealPickerValue}
+              mode="time"
+              display="spinner"
+              onChange={handleMealTimeChange}
+              textColor={Platform.OS === 'ios' ? Colors.foreground : undefined}
+              accentColor={Platform.OS === 'ios' ? Colors.primary : undefined}
+            />
+            <View style={styles.pickerActions}>
+              <SecondaryButton
+                label="Abbrechen"
+                onPress={() => {
+                  setMealPickerValue(new Date(mealTimestamp));
+                  setMealTimePickerVisible(false);
+                }}
+                style={styles.pickerAction}
+              />
+              <PrimaryButton
+                label="Fertig"
+                onPress={() => {
+                  setMealTimestamp(new Date(mealPickerValue));
+                  setMealTimePickerVisible(false);
+                }}
+                style={styles.pickerAction}
+              />
+            </View>
+          </View>
+        ) : null}
         <PrimaryButton label="Speichern" onPress={handleSaveMeal} disabled={!mealDescription.trim()} />
-        <SecondaryButton label="Abbrechen" onPress={() => setMealSheetVisible(false)} style={styles.sheetCancel} />
+        <SecondaryButton label="Abbrechen" onPress={closeMealSheet} style={styles.sheetCancel} />
       </Sheet>
     </Screen>
   );
@@ -353,6 +416,38 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: Colors.foreground,
     marginBottom: 14,
+  },
+  timeButton: {
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    borderRadius: 12,
+    backgroundColor: Colors.muted,
+    marginBottom: 14,
+  },
+  timeButtonLabel: {
+    fontSize: 11,
+    color: Colors.mutedForeground,
+  },
+  timeButtonValue: {
+    marginTop: 4,
+    fontSize: 14,
+    fontWeight: '600',
+    color: Colors.foreground,
+  },
+  inlinePicker: {
+    marginTop: -4,
+    marginBottom: 14,
+    padding: 10,
+    borderRadius: 12,
+    backgroundColor: Colors.muted,
+  },
+  pickerActions: {
+    flexDirection: 'row',
+    gap: 10,
+    marginTop: 12,
+  },
+  pickerAction: {
+    flex: 1,
   },
   sheetCancel: {
     marginTop: 10,
